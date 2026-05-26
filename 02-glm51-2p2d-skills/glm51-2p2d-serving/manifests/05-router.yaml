@@ -1,0 +1,106 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: sglang-router
+  namespace: glm51-test
+  labels:
+    app: sglang-router
+spec:
+  type: ClusterIP
+  selector:
+    app: sglang-router
+  ports:
+    - name: http
+      port: 8000
+      targetPort: 8000
+      protocol: TCP
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sglang-router
+  namespace: glm51-test
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: sglang-router
+  template:
+    metadata:
+      labels:
+        app: sglang-router
+    spec:
+      tolerations:
+        - key: nvidia.com/gpu
+          operator: Equal
+          value: "true"
+          effect: NoSchedule
+      containers:
+        - name: router
+          image: SGLANG_IMAGE_PLACEHOLDER
+          imagePullPolicy: IfNotPresent
+          command: ["/bin/bash", "-c"]
+          args:
+            - |
+              set -eu
+              echo "=== Installing sglang-router ==="
+              pip install --quiet sglang-router 2>&1 | tail -3
+              echo "=== Starting SGLang PD Router (mini-lb mode) ==="
+              PREFILL_URL="http://sglang-prefill-0.sglang-prefill.glm51-test.svc.cluster.local:30082"
+              DECODE_URL="http://sglang-decode-0.sglang-decode.glm51-test.svc.cluster.local:30081"
+              BOOTSTRAP_PORT=5555
+              echo "Prefill: ${PREFILL_URL} (bootstrap:${BOOTSTRAP_PORT})"
+              echo "Decode:  ${DECODE_URL}"
+              exec python3 -m sglang_router.launch_router \
+                --pd-disaggregation \
+                --mini-lb \
+                --disable-health-check \
+                --prefill "${PREFILL_URL}" "${BOOTSTRAP_PORT}" \
+                --decode "${DECODE_URL}" \
+                --host 0.0.0.0 \
+                --port 8000
+          ports:
+            - containerPort: 8000
+              name: http
+          resources:
+            requests:
+              cpu: "2"
+              memory: 4Gi
+            limits:
+              cpu: "4"
+              memory: 8Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: sglang-prefill-external
+  namespace: glm51-test
+  labels:
+    app: sglang-prefill
+spec:
+  type: ClusterIP
+  selector:
+    app: sglang-prefill
+  ports:
+    - name: http
+      port: 30082
+      targetPort: 30082
+      protocol: TCP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: sglang-decode-external
+  namespace: glm51-test
+  labels:
+    app: sglang-decode
+spec:
+  type: ClusterIP
+  selector:
+    app: sglang-decode
+  ports:
+    - name: http
+      port: 30081
+      targetPort: 30081
+      protocol: TCP

@@ -1,0 +1,134 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: sglang-prefill-launcher
+  namespace: glm51-test
+data:
+  launcher.sh: |
+    #!/usr/bin/env bash
+    set -eu
+
+    # Fix nixl module name (image has nixl_cu13, SGLang expects nixl)
+    NIXL_DIR="/opt/nixl/lib/python3/dist-packages"
+    if [ ! -d "${NIXL_DIR}/nixl_cu13" ]; then
+      echo "[Prefill] ERROR: nixl_cu13 not found at ${NIXL_DIR}"
+      ls -la "${NIXL_DIR}"
+      exit 1
+    fi
+    ln -sf "${NIXL_DIR}/nixl_cu13" "${NIXL_DIR}/nixl"
+    echo "[Prefill] Created symlink: ${NIXL_DIR}/nixl -> nixl_cu13"
+    python3 -c "from nixl._api import nixl_agent; print('[Prefill] SUCCESS: nixl import works')" || exit 1
+
+    # Required environment variables
+    MODEL_PATH="${MODEL_PATH:-/data/models/GLM-5.1-FP8}"
+    POD_NAME="${POD_NAME:?}"
+    POD_NAMESPACE="${POD_NAMESPACE:?}"
+    NODE_RANK=$(echo $POD_NAME | grep -oE '[0-9]+$')
+
+    # Distributed config
+    NNODES="${NNODES:-2}"
+    MASTER_ADDR="${MASTER_ADDR:-sglang-prefill-0.sglang-prefill.glm51-test.svc.cluster.local}"
+    MASTER_PORT="${MASTER_PORT:-5757}"
+    KV_BACKEND="${KV_BACKEND:-nixl}"
+
+    # EFA device discovery
+    if command -v fi_info >/dev/null 2>&1; then
+      IB_DEVICES=$(fi_info -p efa 2>/dev/null | awk '/domain:/ {print $2}' | sed 's/-rdm$//;s/-dgrm$//' | sort -u | paste -sd,)
+      echo "[Prefill-${NODE_RANK}] Discovered EFA devices: ${IB_DEVICES}"
+    else
+      IB_DEVICES="rdmap85s0,rdmap86s0,rdmap110s0,rdmap111s0,rdmap135s0,rdmap136s0,rdmap160s0,rdmap161s0,rdmap87s0,rdmap88s0,rdmap112s0,rdmap113s0,rdmap137s0,rdmap138s0,rdmap162s0,rdmap163s0"
+      echo "[Prefill-${NODE_RANK}] Using default EFA devices: ${IB_DEVICES}"
+    fi
+
+    # Restore DeepGEMM cache from S3 if local is empty
+    S3_CACHE_PATH="s3://${S3_BUCKET:?S3_BUCKET env required}/cache/deep_gemm/${POD_NAME}"
+    LOCAL_CACHE="/data/sglang/deep_gemm"
+    mkdir -p "${LOCAL_CACHE}"
+    EXISTING_FILES=$(find "${LOCAL_CACHE}" -type f 2>/dev/null | wc -l)
+    if [ "${EXISTING_FILES}" -eq 0 ]; then
+      echo "[Prefill-${NODE_RANK}] Local cache empty, restoring from ${S3_CACHE_PATH} ..."
+      if aws s3 sync "${S3_CACHE_PATH}/" "${LOCAL_CACHE}/" --region "${AWS_DEFAULT_REGION:?AWS_DEFAULT_REGION env required}" --only-show-errors; then
+        echo "[Prefill-${NODE_RANK}] Cache restored: $(find ${LOCAL_CACHE} -type f | wc -l) files"
+      else
+        echo "[Prefill-${NODE_RANK}] S3 cache not available, will compile from scratch"
+      fi
+    else
+      echo "[Prefill-${NODE_RANK}] Local cache has ${EXISTING_FILES} files, skip S3 restore"
+    fi
+
+    # Environment setup
+    export NVIDIA_SPARSE_ENABLE=1
+    export OMP_NUM_THREADS=16
+    export SGLANG_SET_CPU_AFFINITY=1
+    export SGLANG_ALLOW_OVERWRITE_LONGER_CONTEXT_LEN=1
+    export SGLANG_MOE_PADDING=1
+    export SGLANG_ENABLE_JIT_DEEPGEMM=1
+    export SGLANG_JIT_DEEPGEMM_COMPILE_WORKERS=32
+    export SGLANG_DG_CACHE_DIR=/data/sglang/deep_gemm
+    export SGLANG_CHUNKED_PREFIX_CACHE_THRESHOLD=16384
+    export SGLANG_DISAGGREGATION_HEARTBEAT_INTERVAL=10
+    export SGLANG_DISAGGREGATION_BOOTSTRAP_TIMEOUT=181
+    export SGLANG_DISAGGREGATION_WAITING_TIMEOUT=179
+    export PYTHONUNBUFFERED=1
+    export SGLANG_HEALTH_CHECK_MEM_FREE=50
+
+    # UCCL (for DeepEP MoE communication)
+    export UCCL_SOCKET_IFNAME=eth0
+    export UCCL_IB_HCA="${IB_DEVICES}"
+
+    # nixl environment
+    export FI_PROVIDER=efa
+    export FI_EFA_USE_DEVICE_RDMA=1
+    export FI_EFA_FORK_SAFE=1
+    export SGLANG_DISAGGREGATION_NIXL_BACKEND=LIBFABRIC
+
+    # Create cache directories
+    mkdir -p /data/sglang/torch-compile
+    mkdir -p /data/sglang/deep_gemm
+    mkdir -p /data/sglang/logs
+
+    echo "[Prefill-${NODE_RANK}] Starting SGLang prefill server..."
+    echo "[Prefill-${NODE_RANK}] Node rank: ${NODE_RANK}/${NNODES}"
+    echo "[Prefill-${NODE_RANK}] Master: ${MASTER_ADDR}:${MASTER_PORT}"
+    echo "[Prefill-${NODE_RANK}] Model: ${MODEL_PATH}"
+    echo "[Prefill-${NODE_RANK}] KV backend: ${KV_BACKEND}"
+
+    exec python3 -m sglang.launch_server \
+      --model-path "${MODEL_PATH}" \
+      --served-model-name glm-5-fp8-long-pd \
+      --watchdog-timeout 3600 \
+      --enable-metrics \
+      --log-level info \
+      --disaggregation-mode prefill \
+      --disaggregation-transfer-backend "${KV_BACKEND}" \
+      --disaggregation-bootstrap-port 5555 \
+      --disaggregation-ib-device "${IB_DEVICES}" \
+      --host 0.0.0.0 \
+      --port 30082 \
+      --trust-remote-code \
+      --tp-size 8 \
+      --pp-size 2 \
+      --nnodes ${NNODES} \
+      --node-rank ${NODE_RANK} \
+      --dist-init-addr "${MASTER_ADDR}:${MASTER_PORT}" \
+      --chunked-prefill-size 16384 \
+      --mem-fraction-static 0.85 \
+      --max-running-requests 8 \
+      --context-length 202752 \
+      --attention-backend nsa \
+      --page-size 64 \
+      --crash-dump-folder /data/sglang/logs \
+      --tool-call-parser glm47 \
+      --reasoning-parser glm45 \
+      --tokenizer-worker-num 8 \
+      --enable-dynamic-batch-tokenizer \
+      --dynamic-batch-tokenizer-batch-size 8 \
+      --enable-nsa-prefill-context-parallel \
+      --nsa-prefill-cp-mode round-robin-split \
+      --ep-dispatch-algorithm dynamic \
+      --eplb-algorithm deepseek \
+      --disable-shared-experts-fusion \
+      --deepep-mode normal \
+      --moe-a2a-backend deepep \
+      --dp-size 1 \
+      --moe-dense-tp-size 1

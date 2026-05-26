@@ -1,0 +1,186 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: sglang-decode
+  namespace: glm51-test
+  labels:
+    app: sglang-decode
+spec:
+  clusterIP: None
+  selector:
+    app: sglang-decode
+  ports:
+    - name: http
+      port: 30081
+      targetPort: 30081
+    - name: dist-init
+      port: 5757
+      targetPort: 5757
+    - name: bootstrap
+      port: 5555
+      targetPort: 5555
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: sglang-decode
+  namespace: glm51-test
+spec:
+  serviceName: sglang-decode
+  replicas: 2
+  podManagementPolicy: Parallel
+  selector:
+    matchLabels:
+      app: sglang-decode
+  template:
+    metadata:
+      labels:
+        app: sglang-decode
+    spec:
+      terminationGracePeriodSeconds: 120
+      restartPolicy: Always
+
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            - labelSelector:
+                matchExpressions:
+                  - key: app
+                    operator: In
+                    values:
+                      - sglang-decode
+              topologyKey: kubernetes.io/hostname
+
+      tolerations:
+        - key: nvidia.com/gpu
+          operator: Equal
+          value: "true"
+          effect: NoSchedule
+
+      nodeSelector:
+        node.kubernetes.io/instance-type: p5en.48xlarge
+
+      containers:
+        - name: sglang
+          image: SGLANG_IMAGE_PLACEHOLDER
+          imagePullPolicy: IfNotPresent
+          command: ["/bin/bash", "/scripts/launcher.sh"]
+
+          env:
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: POD_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            - name: MODEL_PATH
+              value: "/data/models/GLM-5.1-FP8"
+            - name: NNODES
+              value: "2"
+            - name: MASTER_ADDR
+              value: "sglang-decode-0.sglang-decode.glm51-test.svc.cluster.local"
+            - name: MASTER_PORT
+              value: "5757"
+            - name: KV_BACKEND
+              value: "nixl"
+            - name: S3_BUCKET
+              value: "S3_BUCKET_PLACEHOLDER"
+            - name: AWS_DEFAULT_REGION
+              value: "AWS_REGION_PLACEHOLDER"
+
+          ports:
+            - name: http
+              containerPort: 30081
+              protocol: TCP
+            - name: dist-init
+              containerPort: 5757
+              protocol: TCP
+            - name: bootstrap
+              containerPort: 5555
+              protocol: TCP
+
+          resources:
+            requests:
+              nvidia.com/gpu: 8
+              vpc.amazonaws.com/efa: 16
+              memory: 500Gi
+              cpu: 64
+              hugepages-2Mi: 5120Mi
+            limits:
+              nvidia.com/gpu: 8
+              vpc.amazonaws.com/efa: 16
+              memory: 500Gi
+              cpu: 96
+              hugepages-2Mi: 5120Mi
+
+          volumeMounts:
+            - name: data
+              mountPath: /data
+            - name: scripts
+              mountPath: /scripts
+            - name: shm
+              mountPath: /dev/shm
+
+          securityContext:
+            capabilities:
+              add:
+                - IPC_LOCK
+                - SYS_PTRACE
+
+        - name: deepgemm-cache-sync
+          image: public.ecr.aws/aws-cli/aws-cli:latest
+          command: ["/bin/sh", "-c"]
+          args:
+            - |
+              CACHE_DIR="/data/sglang/deep_gemm"
+              S3_PATH="s3://${S3_BUCKET}/cache/deep_gemm/${POD_NAME}"
+              INTERVAL="${SYNC_INTERVAL:-300}"
+              echo "[cache-sync] Starting periodic sync every ${INTERVAL}s"
+              echo "[cache-sync] Local: ${CACHE_DIR} -> S3: ${S3_PATH}"
+              while true; do
+                sleep "${INTERVAL}"
+                COUNT=$(find "${CACHE_DIR}" -type f 2>/dev/null | wc -l)
+                if [ "${COUNT}" -gt 0 ]; then
+                  aws s3 sync "${CACHE_DIR}/" "${S3_PATH}/" --size-only --only-show-errors
+                  echo "[cache-sync] Synced ${COUNT} files to S3"
+                fi
+              done
+          env:
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: S3_BUCKET
+              value: "S3_BUCKET_PLACEHOLDER"
+            - name: SYNC_INTERVAL
+              value: "300"
+            - name: AWS_DEFAULT_REGION
+              value: "AWS_REGION_PLACEHOLDER"
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
+          volumeMounts:
+            - name: data
+              mountPath: /data
+              readOnly: true
+
+      volumes:
+        - name: data
+          hostPath:
+            path: /data
+            type: Directory
+        - name: scripts
+          configMap:
+            name: sglang-decode-launcher
+            defaultMode: 0755
+        - name: shm
+          emptyDir:
+            medium: Memory
+            sizeLimit: 32Gi
