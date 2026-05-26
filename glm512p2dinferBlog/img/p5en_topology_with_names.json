@@ -1,0 +1,95 @@
+{
+  "Instances": [
+    {
+      "InstanceId": "i-084ea0d4370b43dc9",
+      "Name": "jdmaas-gpu-gpu-p5en-48xlarge-node",
+      "PrivateIp": "6.166.127.26",
+      "InstanceType": "p5en.48xlarge",
+      "NetworkNodes": [
+        "nn-e0b9efe966bdd8d80",
+        "nn-4c0ac8958606bbca1",
+        "nn-64692b17f47cee606"
+      ],
+      "AvailabilityZone": "eu-south-2a",
+      "ZoneId": "eus2-az1"
+    },
+    {
+      "InstanceId": "i-075c9f2ba6ff398ed",
+      "Name": "jdmaas-gpu-gpu-p5en-48xlarge-node-prefill-0",
+      "PrivateIp": "6.166.120.245",
+      "InstanceType": "p5en.48xlarge",
+      "NetworkNodes": [
+        "nn-e0b9efe966bdd8d80",
+        "nn-4c0ac8958606bbca1",
+        "nn-131e3863fb6df4f93"
+      ],
+      "AvailabilityZone": "eu-south-2a",
+      "ZoneId": "eus2-az1"
+    },
+    {
+      "InstanceId": "i-0e1ab7b1c112f2d75",
+      "Name": "jdmaas-gpu-gpu-p5en-48xlarge-node-prefill-1",
+      "PrivateIp": "6.166.123.226",
+      "InstanceType": "p5en.48xlarge",
+      "NetworkNodes": [
+        "nn-e0b9efe966bdd8d80",
+        "nn-4c0ac8958606bbca1",
+        "nn-05143373952561b76"
+      ],
+      "AvailabilityZone": "eu-south-2a",
+      "ZoneId": "eus2-az1"
+    },
+    {
+      "InstanceId": "i-030eb9d4a7ef0a58e",
+      "Name": "jdmaas-gpu-gpu-p5en-48xlarge-node-kimi-p",
+      "PrivateIp": "6.166.125.145",
+      "InstanceType": "p5en.48xlarge",
+      "NetworkNodes": [
+        "nn-e0b9efe966bdd8d80",
+        "nn-4c0ac8958606bbca1",
+        "nn-2bfe8b8a672b5a31d"
+      ],
+      "AvailabilityZone": "eu-south-2a",
+      "ZoneId": "eus2-az1"
+    },
+    {
+      "InstanceId": "i-0dc1a8b850a53d140",
+      "Name": "jdmaas-gpu-gpu-p5en-48xlarge-node-kimi-d",
+      "PrivateIp": "6.166.120.207",
+      "InstanceType": "p5en.48xlarge",
+      "NetworkNodes": [
+        "nn-e0b9efe966bdd8d80",
+        "nn-4c0ac8958606bbca1",
+        "nn-37bd4b1b23745d411"
+      ],
+      "AvailabilityZone": "eu-south-2a",
+      "ZoneId": "eus2-az1"
+    },
+    {
+      "InstanceId": "i-01e9d1dd51ebc8eb5",
+      "Name": "jdmaas-gpu-gpu-p5en-48xlarge-node-decode-0",
+      "PrivateIp": "6.166.123.15",
+      "InstanceType": "p5en.48xlarge",
+      "NetworkNodes": [
+        "nn-e0b9efe966bdd8d80",
+        "nn-4c0ac8958606bbca1",
+        "nn-bef1de6b58007f1c3"
+      ],
+      "AvailabilityZone": "eu-south-2a",
+      "ZoneId": "eus2-az1"
+    },
+    {
+      "InstanceId": "i-035846380ab547e18",
+      "Name": "jdmaas-gpu-gpu-p5en-48xlarge-node-decode-1",
+      "PrivateIp": "6.166.124.241",
+      "InstanceType": "p5en.48xlarge",
+      "NetworkNodes": [
+        "nn-e0b9efe966bdd8d80",
+        "nn-4c0ac8958606bbca1",
+        "nn-fa8b8ad68166b592e"
+      ],
+      "AvailabilityZone": "eu-south-2a",
+      "ZoneId": "eus2-az1"
+    }
+  ]
+}

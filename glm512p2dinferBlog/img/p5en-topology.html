@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>P5en.48xlarge Internal Bus Topology</title>
+<style>
+  body {
+    background: #0f1117;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    margin: 0;
+    padding: 20px;
+  }
+  .diagram-container {
+    background: #13151e;
+    border: 1px solid #2a2d3a;
+    border-radius: 12px;
+    padding: 24px;
+  }
+</style>
+</head>
+<body>
+<div class="diagram-container">
+<svg viewBox="0 0 1050 750" xmlns="http://www.w3.org/2000/svg" width="1050" height="750">
+  <defs>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="2" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+
+  <!-- Title -->
+  <text x="525" y="28" text-anchor="middle" fill="#e0e0e6" font-size="17" font-weight="700" font-family="sans-serif">P5en.48xlarge 服务器内部总线拓扑</text>
+
+  <!-- NUMA Node 0 -->
+  <rect x="20" y="50" width="490" height="620" rx="12" fill="none" stroke="#6c8aff" stroke-width="1.5" stroke-dasharray="8,4" opacity="0.5"/>
+  <text x="265" y="75" text-anchor="middle" fill="#6c8aff" font-size="14" font-weight="600" font-family="sans-serif">NUMA Node 0</text>
+
+  <!-- NUMA Node 1 -->
+  <rect x="540" y="50" width="490" height="620" rx="12" fill="none" stroke="#ff9f43" stroke-width="1.5" stroke-dasharray="8,4" opacity="0.5"/>
+  <text x="785" y="75" text-anchor="middle" fill="#ff9f43" font-size="14" font-weight="600" font-family="sans-serif">NUMA Node 1</text>
+
+  <!-- CPU 0 -->
+  <rect x="130" y="95" width="260" height="80" rx="10" fill="#1e2a4a" stroke="#6c8aff" stroke-width="2"/>
+  <text x="260" y="122" text-anchor="middle" fill="#6c8aff" font-size="13" font-weight="700" font-family="sans-serif">CPU 0 (Sapphire Rapids, 48c)</text>
+  <text x="260" y="143" text-anchor="middle" fill="#8b8fa3" font-size="11" font-family="sans-serif">DDR5 | Root Complex 0</text>
+  <text x="260" y="162" text-anchor="middle" fill="#26de81" font-size="11" font-weight="600" font-family="sans-serif">PCIe Gen5</text>
+
+  <!-- CPU 1 -->
+  <rect x="650" y="95" width="260" height="80" rx="10" fill="#2a1e1e" stroke="#ff9f43" stroke-width="2"/>
+  <text x="780" y="122" text-anchor="middle" fill="#ff9f43" font-size="13" font-weight="700" font-family="sans-serif">CPU 1 (Sapphire Rapids, 48c)</text>
+  <text x="780" y="143" text-anchor="middle" fill="#8b8fa3" font-size="11" font-family="sans-serif">DDR5 | Root Complex 1</text>
+  <text x="780" y="162" text-anchor="middle" fill="#26de81" font-size="11" font-weight="600" font-family="sans-serif">PCIe Gen5</text>
+
+  <!-- UPI connection -->
+  <line x1="390" y1="132" x2="650" y2="132" stroke="#ff9f43" stroke-width="3.5" filter="url(#glow)"/>
+  <rect x="480" y="118" width="80" height="28" rx="6" fill="#2a1e1e" stroke="#ff9f43" stroke-width="1.5"/>
+  <text x="520" y="137" text-anchor="middle" fill="#ff9f43" font-size="10" font-weight="700" font-family="sans-serif">UPI</text>
+
+  <!-- PCIe Switch 0 -->
+  <rect x="65" y="210" width="390" height="36" rx="8" fill="#1a2a2a" stroke="#26de81" stroke-width="1.5"/>
+  <text x="260" y="233" text-anchor="middle" fill="#26de81" font-size="12" font-weight="600" font-family="sans-serif">PCIe Switch 0</text>
+  <line x1="260" y1="175" x2="260" y2="210" stroke="#6c8aff" stroke-width="2.5"/>
+
+  <!-- PCIe Switch 1 -->
+  <rect x="590" y="210" width="390" height="36" rx="8" fill="#1a2a2a" stroke="#26de81" stroke-width="1.5"/>
+  <text x="785" y="233" text-anchor="middle" fill="#26de81" font-size="12" font-weight="600" font-family="sans-serif">PCIe Switch 1</text>
+  <line x1="780" y1="175" x2="780" y2="210" stroke="#ff9f43" stroke-width="2.5"/>
+
+  <!-- GPU 0-3 (NUMA 0) -->
+  <rect x="60" y="290" width="90" height="50" rx="8" fill="#2a1e3e" stroke="#a55eea" stroke-width="1.5"/>
+  <text x="105" y="313" text-anchor="middle" fill="#a55eea" font-size="12" font-weight="700" font-family="sans-serif">GPU 0</text>
+  <text x="105" y="330" text-anchor="middle" fill="#8b8fa3" font-size="9" font-family="sans-serif">H200 141GB</text>
+  <line x1="105" y1="246" x2="105" y2="290" stroke="#6c8aff" stroke-width="1.5"/>
+
+  <rect x="165" y="290" width="90" height="50" rx="8" fill="#2a1e3e" stroke="#a55eea" stroke-width="1.5"/>
+  <text x="210" y="313" text-anchor="middle" fill="#a55eea" font-size="12" font-weight="700" font-family="sans-serif">GPU 1</text>
+  <text x="210" y="330" text-anchor="middle" fill="#8b8fa3" font-size="9" font-family="sans-serif">H200 141GB</text>
+  <line x1="210" y1="246" x2="210" y2="290" stroke="#6c8aff" stroke-width="1.5"/>
+
+  <rect x="270" y="290" width="90" height="50" rx="8" fill="#2a1e3e" stroke="#a55eea" stroke-width="1.5"/>
+  <text x="315" y="313" text-anchor="middle" fill="#a55eea" font-size="12" font-weight="700" font-family="sans-serif">GPU 2</text>
+  <text x="315" y="330" text-anchor="middle" fill="#8b8fa3" font-size="9" font-family="sans-serif">H200 141GB</text>
+  <line x1="315" y1="246" x2="315" y2="290" stroke="#6c8aff" stroke-width="1.5"/>
+
+  <rect x="375" y="290" width="90" height="50" rx="8" fill="#2a1e3e" stroke="#a55eea" stroke-width="1.5"/>
+  <text x="420" y="313" text-anchor="middle" fill="#a55eea" font-size="12" font-weight="700" font-family="sans-serif">GPU 3</text>
+  <text x="420" y="330" text-anchor="middle" fill="#8b8fa3" font-size="9" font-family="sans-serif">H200 141GB</text>
+  <line x1="420" y1="246" x2="420" y2="290" stroke="#6c8aff" stroke-width="1.5"/>
+
+  <!-- GPU 4-7 (NUMA 1) -->
+  <rect x="580" y="290" width="90" height="50" rx="8" fill="#2a1e3e" stroke="#a55eea" stroke-width="1.5"/>
+  <text x="625" y="313" text-anchor="middle" fill="#a55eea" font-size="12" font-weight="700" font-family="sans-serif">GPU 4</text>
+  <text x="625" y="330" text-anchor="middle" fill="#8b8fa3" font-size="9" font-family="sans-serif">H200 141GB</text>
+  <line x1="625" y1="246" x2="625" y2="290" stroke="#ff9f43" stroke-width="1.5"/>
+
+  <rect x="685" y="290" width="90" height="50" rx="8" fill="#2a1e3e" stroke="#a55eea" stroke-width="1.5"/>
+  <text x="730" y="313" text-anchor="middle" fill="#a55eea" font-size="12" font-weight="700" font-family="sans-serif">GPU 5</text>
+  <text x="730" y="330" text-anchor="middle" fill="#8b8fa3" font-size="9" font-family="sans-serif">H200 141GB</text>
+  <line x1="730" y1="246" x2="730" y2="290" stroke="#ff9f43" stroke-width="1.5"/>
+
+  <rect x="790" y="290" width="90" height="50" rx="8" fill="#2a1e3e" stroke="#a55eea" stroke-width="1.5"/>
+  <text x="835" y="313" text-anchor="middle" fill="#a55eea" font-size="12" font-weight="700" font-family="sans-serif">GPU 6</text>
+  <text x="835" y="330" text-anchor="middle" fill="#8b8fa3" font-size="9" font-family="sans-serif">H200 141GB</text>
+  <line x1="835" y1="246" x2="835" y2="290" stroke="#ff9f43" stroke-width="1.5"/>
+
+  <rect x="895" y="290" width="90" height="50" rx="8" fill="#2a1e3e" stroke="#a55eea" stroke-width="1.5"/>
+  <text x="940" y="313" text-anchor="middle" fill="#a55eea" font-size="12" font-weight="700" font-family="sans-serif">GPU 7</text>
+  <text x="940" y="330" text-anchor="middle" fill="#8b8fa3" font-size="9" font-family="sans-serif">H200 141GB</text>
+  <line x1="940" y1="246" x2="940" y2="290" stroke="#ff9f43" stroke-width="1.5"/>
+
+  <!-- NVSwitch full mesh -->
+  <rect x="50" y="360" width="950" height="36" rx="6" fill="rgba(165,94,234,0.12)" stroke="#a55eea" stroke-width="1.5"/>
+  <text x="525" y="383" text-anchor="middle" fill="#a55eea" font-size="12" font-weight="700" font-family="sans-serif">NVSwitch 全连接 (NVLink 4, 双向 900 GB/s) — 8 GPU 任意对通信</text>
+
+  <!-- Nitro Cards: show 0, 1, ..., 14, 15 -->
+  <!-- Nitro 0 -->
+  <rect x="50" y="450" width="90" height="50" rx="8" fill="#1a2a1e" stroke="#26de81" stroke-width="1.5"/>
+  <text x="95" y="472" text-anchor="middle" fill="#26de81" font-size="11" font-weight="700" font-family="sans-serif">Nitro 0</text>
+  <text x="95" y="490" text-anchor="middle" fill="#8b8fa3" font-size="9" font-family="sans-serif">200 Gbps</text>
+  <line x1="95" y1="246" x2="95" y2="450" stroke="#6c8aff" stroke-width="1" stroke-dasharray="4,2" opacity="0.4"/>
+
+  <!-- Nitro 1 -->
+  <rect x="155" y="450" width="90" height="50" rx="8" fill="#1a2a1e" stroke="#26de81" stroke-width="1.5"/>
+  <text x="200" y="472" text-anchor="middle" fill="#26de81" font-size="11" font-weight="700" font-family="sans-serif">Nitro 1</text>
+  <text x="200" y="490" text-anchor="middle" fill="#8b8fa3" font-size="9" font-family="sans-serif">200 Gbps</text>
+  <line x1="200" y1="246" x2="200" y2="450" stroke="#6c8aff" stroke-width="1" stroke-dasharray="4,2" opacity="0.4"/>
+
+  <!-- Nitro 2 -->
+  <rect x="260" y="450" width="90" height="50" rx="8" fill="#1a2a1e" stroke="#26de81" stroke-width="1.5"/>
+  <text x="305" y="472" text-anchor="middle" fill="#26de81" font-size="11" font-weight="700" font-family="sans-serif">Nitro 2</text>
+  <text x="305" y="490" text-anchor="middle" fill="#8b8fa3" font-size="9" font-family="sans-serif">200 Gbps</text>
+  <line x1="305" y1="246" x2="305" y2="450" stroke="#6c8aff" stroke-width="1" stroke-dasharray="4,2" opacity="0.4"/>
+
+  <!-- Ellipsis -->
+  <text x="413" y="480" text-anchor="middle" fill="#8b8fa3" font-size="22" font-weight="700" font-family="sans-serif">···</text>
+  <text x="413" y="500" text-anchor="middle" fill="#8b8fa3" font-size="9" font-family="sans-serif">×16 张</text>
+
+  <!-- Nitro 13 -->
+  <rect x="680" y="450" width="90" height="50" rx="8" fill="#1a2a1e" stroke="#26de81" stroke-width="1.5"/>
+  <text x="725" y="472" text-anchor="middle" fill="#26de81" font-size="11" font-weight="700" font-family="sans-serif">Nitro 13</text>
+  <text x="725" y="490" text-anchor="middle" fill="#8b8fa3" font-size="9" font-family="sans-serif">200 Gbps</text>
+  <line x1="725" y1="246" x2="725" y2="450" stroke="#ff9f43" stroke-width="1" stroke-dasharray="4,2" opacity="0.4"/>
+
+  <!-- Nitro 14 -->
+  <rect x="785" y="450" width="90" height="50" rx="8" fill="#1a2a1e" stroke="#26de81" stroke-width="1.5"/>
+  <text x="830" y="472" text-anchor="middle" fill="#26de81" font-size="11" font-weight="700" font-family="sans-serif">Nitro 14</text>
+  <text x="830" y="490" text-anchor="middle" fill="#8b8fa3" font-size="9" font-family="sans-serif">200 Gbps</text>
+  <line x1="830" y1="246" x2="830" y2="450" stroke="#ff9f43" stroke-width="1" stroke-dasharray="4,2" opacity="0.4"/>
+
+  <!-- Nitro 15 -->
+  <rect x="890" y="450" width="90" height="50" rx="8" fill="#1a2a1e" stroke="#26de81" stroke-width="1.5"/>
+  <text x="935" y="472" text-anchor="middle" fill="#26de81" font-size="11" font-weight="700" font-family="sans-serif">Nitro 15</text>
+  <text x="935" y="490" text-anchor="middle" fill="#8b8fa3" font-size="9" font-family="sans-serif">200 Gbps</text>
+  <line x1="935" y1="246" x2="935" y2="450" stroke="#ff9f43" stroke-width="1" stroke-dasharray="4,2" opacity="0.4"/>
+
+  <!-- Optical fibers to TOR -->
+  <line x1="95" y1="500" x2="95" y2="560" stroke="#fc5c65" stroke-width="2"/>
+  <line x1="200" y1="500" x2="200" y2="560" stroke="#fc5c65" stroke-width="2"/>
+  <line x1="305" y1="500" x2="305" y2="560" stroke="#fc5c65" stroke-width="2"/>
+  <line x1="725" y1="500" x2="725" y2="560" stroke="#fc5c65" stroke-width="2"/>
+  <line x1="830" y1="500" x2="830" y2="560" stroke="#fc5c65" stroke-width="2"/>
+  <line x1="935" y1="500" x2="935" y2="560" stroke="#fc5c65" stroke-width="2"/>
+
+  <text x="525" y="545" text-anchor="middle" fill="#fc5c65" font-size="10" font-family="sans-serif">↓ 每张 Nitro 卡一根光纤 (200 Gbps) ↓</text>
+
+  <!-- TOR Switch -->
+  <rect x="50" y="565" width="945" height="46" rx="8" fill="#2a1e1e" stroke="#fc5c65" stroke-width="2"/>
+  <text x="525" y="593" text-anchor="middle" fill="#fc5c65" font-size="14" font-weight="700" font-family="sans-serif">TOR 交换机 — 16 × 200 Gbps = 3,200 Gbps 总 EFA 带宽</text>
+
+  <!-- Legend -->
+  <g transform="translate(50, 640)">
+    <line x1="0" y1="0" x2="25" y2="0" stroke="#a55eea" stroke-width="3"/>
+    <text x="30" y="4" fill="#8b8fa3" font-size="10" font-family="sans-serif">NVLink 4 (NVSwitch, 900 GB/s 双向)</text>
+
+    <line x1="0" y1="22" x2="25" y2="22" stroke="#6c8aff" stroke-width="2.5"/>
+    <text x="30" y="26" fill="#8b8fa3" font-size="10" font-family="sans-serif">PCIe Gen5 (~64 GB/s per x16)</text>
+
+    <line x1="0" y1="44" x2="25" y2="44" stroke="#ff9f43" stroke-width="3"/>
+    <text x="30" y="48" fill="#8b8fa3" font-size="10" font-family="sans-serif">UPI (跨 Socket 互联)</text>
+
+    <line x1="0" y1="66" x2="25" y2="66" stroke="#fc5c65" stroke-width="2"/>
+    <text x="30" y="70" fill="#8b8fa3" font-size="10" font-family="sans-serif">光纤 (200 Gbps / 卡)</text>
+
+    <line x1="0" y1="88" x2="25" y2="88" stroke="#26de81" stroke-width="2"/>
+    <text x="30" y="92" fill="#8b8fa3" font-size="10" font-family="sans-serif">Nitro 网卡 (EFA + ENA 双功能)</text>
+  </g>
+
+  <!-- Key specs box -->
+  <rect x="550" y="635" width="440" height="95" rx="8" fill="#1a1d27" stroke="#2a2d3a" stroke-width="1"/>
+  <text x="570" y="658" fill="#e0e0e6" font-size="11" font-weight="600" font-family="sans-serif">P5en.48xlarge 关键参数</text>
+  <text x="570" y="678" fill="#8b8fa3" font-size="10" font-family="sans-serif">GPU: 8× H200 (141 GB HBM3e each, 1,128 GB total)</text>
+  <text x="570" y="695" fill="#8b8fa3" font-size="10" font-family="sans-serif">CPU: 2× Intel Sapphire Rapids (96 cores / 192 vCPU)</text>
+  <text x="570" y="712" fill="#8b8fa3" font-size="10" font-family="sans-serif">EFA: 16 张 Nitro 卡, 每张 200 Gbps, 总计 3,200 Gbps</text>
+  <text x="570" y="729" fill="#8b8fa3" font-size="10" font-family="sans-serif">NVLink: NVSwitch 全连接, 双向 900 GB/s (GPU 间)</text>
+
+</svg>
+</div>
+</body>
+</html>

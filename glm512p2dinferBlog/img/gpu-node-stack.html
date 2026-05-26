@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>GPU 节点软件栈：EKS GPU AMI vs GPU Operator</title>
+<style>
+  body { margin: 0; padding: 30px; background: #fff; font-family: -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif; }
+  svg { display: block; margin: 0 auto; }
+</style>
+</head>
+<body>
+<svg width="1200" height="700" viewBox="0 0 1200 700" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <marker id="arrow" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+      <path d="M0,0 L8,3 L0,6 Z" fill="#666"/>
+    </marker>
+  </defs>
+
+  <!-- ===== 标题 ===== -->
+  <text x="290" y="30" text-anchor="middle" font-size="16" fill="#1565c0" font-weight="bold">方式 A：EKS GPU AMI（本方案）</text>
+  <text x="290" y="50" text-anchor="middle" font-size="11" fill="#666">AMI 预装驱动，确定性优先</text>
+
+  <text x="910" y="30" text-anchor="middle" font-size="16" fill="#7b1fa2" font-weight="bold">方式 B：GPU Operator</text>
+  <text x="910" y="50" text-anchor="middle" font-size="11" fill="#666">运行时安装驱动，灵活性优先</text>
+
+  <!-- 分隔线 -->
+  <line x1="595" y1="20" x2="595" y2="690" stroke="#ccc" stroke-width="1.5" stroke-dasharray="6,4"/>
+  <text x="595" y="695" text-anchor="middle" font-size="10" fill="#999">VS</text>
+
+  <!-- ================================================================ -->
+  <!-- ===== 左侧: EKS GPU AMI 方案 ===== -->
+  <!-- ================================================================ -->
+
+  <!-- 容器层 -->
+  <rect x="20" y="65" width="555" height="165" rx="8" fill="#e3f2fd" stroke="#1565c0" stroke-width="2"/>
+  <text x="35" y="88" font-size="13" fill="#1565c0" font-weight="bold">容器层 (Container Image)</text>
+  <text x="460" y="88" font-size="10" fill="#666" font-style="italic">独立升级迭代</text>
+
+  <rect x="35" y="98" width="525" height="28" rx="5" fill="#1565c0"/>
+  <text x="297" y="117" text-anchor="middle" font-size="12" fill="#fff" font-weight="bold">SGLang 推理引擎</text>
+
+  <rect x="35" y="133" width="168" height="42" rx="5" fill="#fff" stroke="#1565c0" stroke-width="1.2"/>
+  <text x="119" y="152" text-anchor="middle" font-size="10" fill="#1565c0" font-weight="bold">NCCL + aws-ofi-nccl</text>
+  <text x="119" y="166" text-anchor="middle" font-size="9" fill="#666">AllReduce / PP</text>
+
+  <rect x="213" y="133" width="168" height="42" rx="5" fill="#fff" stroke="#1565c0" stroke-width="1.2"/>
+  <text x="297" y="152" text-anchor="middle" font-size="10" fill="#1565c0" font-weight="bold">UCCL-EP (deep_ep)</text>
+  <text x="297" y="166" text-anchor="middle" font-size="9" fill="#666">MoE All-to-All</text>
+
+  <rect x="391" y="133" width="168" height="42" rx="5" fill="#fff" stroke="#1565c0" stroke-width="1.2"/>
+  <text x="475" y="152" text-anchor="middle" font-size="10" fill="#1565c0" font-weight="bold">nixl / Mooncake TE</text>
+  <text x="475" y="166" text-anchor="middle" font-size="9" fill="#666">KV Cache RDMA</text>
+
+  <rect x="35" y="183" width="525" height="22" rx="4" fill="#bbdefb"/>
+  <text x="297" y="199" text-anchor="middle" font-size="10" fill="#1565c0">容器内置: EFA userspace (libfabric) + CUDA runtime</text>
+
+  <text x="297" y="223" text-anchor="middle" font-size="9" fill="#666">Pod 声明 resources.limits 获取设备 — 无需 privileged</text>
+
+  <!-- 箭头 -->
+  <line x1="297" y1="230" x2="297" y2="250" stroke="#666" stroke-width="1.2" marker-end="url(#arrow)"/>
+
+  <!-- 设备资源层 -->
+  <rect x="20" y="255" width="555" height="95" rx="8" fill="#fff3e0" stroke="#e65100" stroke-width="2"/>
+  <text x="35" y="278" font-size="13" fill="#e65100" font-weight="bold">设备资源层 (手动部署 DaemonSet)</text>
+
+  <rect x="35" y="290" width="260" height="45" rx="5" fill="#fff" stroke="#e65100" stroke-width="1.2"/>
+  <text x="165" y="309" text-anchor="middle" font-size="10" fill="#e65100" font-weight="bold">NVIDIA Device Plugin</text>
+  <text x="165" y="325" text-anchor="middle" font-size="9" fill="#666">nvidia.com/gpu: 8 (H200)</text>
+
+  <rect x="305" y="290" width="255" height="45" rx="5" fill="#fff" stroke="#e65100" stroke-width="1.2"/>
+  <text x="432" y="309" text-anchor="middle" font-size="10" fill="#e65100" font-weight="bold">EFA Device Plugin</text>
+  <text x="432" y="325" text-anchor="middle" font-size="9" fill="#666">vpc.amazonaws.com/efa: 16</text>
+
+  <!-- 箭头 -->
+  <line x1="297" y1="350" x2="297" y2="372" stroke="#666" stroke-width="1.2" marker-end="url(#arrow)"/>
+
+  <!-- AMI 层 -->
+  <rect x="20" y="377" width="555" height="175" rx="8" fill="#e8f5e9" stroke="#2e7d32" stroke-width="2"/>
+  <text x="35" y="400" font-size="13" fill="#2e7d32" font-weight="bold">AMI 层 (EKS-optimized AL2023 nvidia)</text>
+  <text x="430" y="400" font-size="10" fill="#666" font-style="italic">节点启动即就绪 (~2-3 min)</text>
+
+  <rect x="35" y="412" width="170" height="45" rx="5" fill="#fff" stroke="#2e7d32" stroke-width="1.2"/>
+  <text x="120" y="431" text-anchor="middle" font-size="10" fill="#2e7d32" font-weight="bold">NVIDIA Driver 580.x</text>
+  <text x="120" y="447" text-anchor="middle" font-size="9" fill="#666">GPU 硬件 (kernel module)</text>
+
+  <rect x="215" y="412" width="180" height="45" rx="5" fill="#fff" stroke="#2e7d32" stroke-width="1.2"/>
+  <text x="305" y="431" text-anchor="middle" font-size="10" fill="#2e7d32" font-weight="bold">nvidia-container-toolkit</text>
+  <text x="305" y="447" text-anchor="middle" font-size="9" fill="#666">向容器注入设备文件和驱动库</text>
+
+  <rect x="405" y="412" width="155" height="45" rx="5" fill="#fff" stroke="#2e7d32" stroke-width="1.2"/>
+  <text x="482" y="431" text-anchor="middle" font-size="10" fill="#2e7d32" font-weight="bold">EFA Driver (efa.ko)</text>
+  <text x="482" y="447" text-anchor="middle" font-size="9" fill="#666">EFA 硬件 + libfabric</text>
+
+  <rect x="35" y="468" width="260" height="38" rx="5" fill="#fff" stroke="#2e7d32" stroke-width="1.2"/>
+  <text x="165" y="491" text-anchor="middle" font-size="10" fill="#2e7d32" font-weight="bold">NVMe Instance Store (LVM → /data)</text>
+
+  <rect x="305" y="468" width="255" height="38" rx="5" fill="#fff" stroke="#2e7d32" stroke-width="1.2"/>
+  <text x="432" y="491" text-anchor="middle" font-size="10" fill="#2e7d32" font-weight="bold">nodeadm (EKS node bootstrap)</text>
+
+  <!-- 优势标注 -->
+  <rect x="20" y="560" width="555" height="55" rx="6" fill="#f1f8e9" stroke="#689f38" stroke-width="1"/>
+  <text x="297" y="580" text-anchor="middle" font-size="11" fill="#2e7d32" font-weight="bold">✓ 优势</text>
+  <text x="297" y="598" text-anchor="middle" font-size="10" fill="#333">确定性高 · 启动快 (2-3 min) · 无运行时仓库依赖 · 节点无状态可随时替换</text>
+
+  <!-- ================================================================ -->
+  <!-- ===== 右侧: GPU Operator 方案 ===== -->
+  <!-- ================================================================ -->
+
+  <!-- 容器层 (相同) -->
+  <rect x="625" y="65" width="555" height="165" rx="8" fill="#e3f2fd" stroke="#1565c0" stroke-width="2"/>
+  <text x="640" y="88" font-size="13" fill="#1565c0" font-weight="bold">容器层 (Container Image)</text>
+  <text x="1060" y="88" font-size="10" fill="#666" font-style="italic">与方式 A 相同</text>
+
+  <rect x="640" y="98" width="525" height="28" rx="5" fill="#1565c0"/>
+  <text x="902" y="117" text-anchor="middle" font-size="12" fill="#fff" font-weight="bold">SGLang 推理引擎</text>
+
+  <rect x="640" y="133" width="168" height="42" rx="5" fill="#fff" stroke="#1565c0" stroke-width="1.2"/>
+  <text x="724" y="152" text-anchor="middle" font-size="10" fill="#1565c0" font-weight="bold">NCCL + aws-ofi-nccl</text>
+  <text x="724" y="166" text-anchor="middle" font-size="9" fill="#666">AllReduce / PP</text>
+
+  <rect x="818" y="133" width="168" height="42" rx="5" fill="#fff" stroke="#1565c0" stroke-width="1.2"/>
+  <text x="902" y="152" text-anchor="middle" font-size="10" fill="#1565c0" font-weight="bold">UCCL-EP (deep_ep)</text>
+  <text x="902" y="166" text-anchor="middle" font-size="9" fill="#666">MoE All-to-All</text>
+
+  <rect x="996" y="133" width="168" height="42" rx="5" fill="#fff" stroke="#1565c0" stroke-width="1.2"/>
+  <text x="1080" y="152" text-anchor="middle" font-size="10" fill="#1565c0" font-weight="bold">nixl / Mooncake TE</text>
+  <text x="1080" y="166" text-anchor="middle" font-size="9" fill="#666">KV Cache RDMA</text>
+
+  <rect x="640" y="183" width="525" height="22" rx="4" fill="#bbdefb"/>
+  <text x="902" y="199" text-anchor="middle" font-size="10" fill="#1565c0">容器内置: EFA userspace (libfabric) + CUDA runtime</text>
+
+  <text x="902" y="223" text-anchor="middle" font-size="9" fill="#666">Pod 声明 resources.limits 获取设备 — 无需 privileged</text>
+
+  <!-- 箭头 -->
+  <line x1="902" y1="230" x2="902" y2="250" stroke="#666" stroke-width="1.2" marker-end="url(#arrow)"/>
+
+  <!-- 设备资源层 - Operator 统管 -->
+  <rect x="625" y="255" width="555" height="95" rx="8" fill="#f3e5f5" stroke="#7b1fa2" stroke-width="2"/>
+  <text x="640" y="278" font-size="13" fill="#7b1fa2" font-weight="bold">设备资源层 (GPU Operator 统管 + EFA 独立部署)</text>
+
+  <rect x="640" y="290" width="120" height="45" rx="5" fill="#fff" stroke="#7b1fa2" stroke-width="1.2"/>
+  <text x="700" y="306" text-anchor="middle" font-size="9" fill="#7b1fa2" font-weight="bold">Device Plugin</text>
+  <text x="700" y="320" text-anchor="middle" font-size="9" fill="#666">Operator 管理</text>
+
+  <rect x="768" y="290" width="110" height="45" rx="5" fill="#fff" stroke="#7b1fa2" stroke-width="1.2"/>
+  <text x="823" y="306" text-anchor="middle" font-size="9" fill="#7b1fa2" font-weight="bold">GFD</text>
+  <text x="823" y="320" text-anchor="middle" font-size="9" fill="#666">GPU Label</text>
+
+  <rect x="886" y="290" width="110" height="45" rx="5" fill="#fff" stroke="#7b1fa2" stroke-width="1.2"/>
+  <text x="941" y="306" text-anchor="middle" font-size="9" fill="#7b1fa2" font-weight="bold">DCGM Exporter</text>
+  <text x="941" y="320" text-anchor="middle" font-size="9" fill="#666">GPU 监控</text>
+
+  <rect x="1004" y="290" width="160" height="45" rx="5" fill="#fff" stroke="#e65100" stroke-width="1.2"/>
+  <text x="1084" y="306" text-anchor="middle" font-size="9" fill="#e65100" font-weight="bold">EFA Device Plugin</text>
+  <text x="1084" y="320" text-anchor="middle" font-size="9" fill="#666">独立部署（Operator 不管）</text>
+
+  <!-- 箭头 -->
+  <line x1="902" y1="350" x2="902" y2="372" stroke="#666" stroke-width="1.2" marker-end="url(#arrow)"/>
+
+  <!-- Operator 运行时安装层 (紫色) -->
+  <rect x="625" y="377" width="555" height="100" rx="8" fill="#f3e5f5" stroke="#7b1fa2" stroke-width="2" stroke-dasharray="5,3"/>
+  <text x="640" y="400" font-size="13" fill="#7b1fa2" font-weight="bold">Operator 运行时安装 (privileged containers)</text>
+  <text x="1050" y="400" font-size="10" fill="#c62828" font-style="italic">节点启动后动态安装</text>
+
+  <rect x="640" y="412" width="170" height="50" rx="5" fill="#fff" stroke="#7b1fa2" stroke-width="1.2"/>
+  <text x="725" y="431" text-anchor="middle" font-size="10" fill="#7b1fa2" font-weight="bold">Driver Container</text>
+  <text x="725" y="446" text-anchor="middle" font-size="9" fill="#666">编译安装 nvidia.ko</text>
+  <text x="725" y="458" text-anchor="middle" font-size="9" fill="#c62828">需要 privileged</text>
+
+  <rect x="820" y="412" width="170" height="50" rx="5" fill="#fff" stroke="#7b1fa2" stroke-width="1.2"/>
+  <text x="905" y="431" text-anchor="middle" font-size="10" fill="#7b1fa2" font-weight="bold">Toolkit Container</text>
+  <text x="905" y="446" text-anchor="middle" font-size="9" fill="#666">安装 container-toolkit</text>
+  <text x="905" y="458" text-anchor="middle" font-size="9" fill="#666">到宿主机</text>
+
+  <rect x="1000" y="412" width="165" height="50" rx="5" fill="#fff" stroke="#7b1fa2" stroke-width="1.2"/>
+  <text x="1082" y="431" text-anchor="middle" font-size="10" fill="#7b1fa2" font-weight="bold">Validator Job</text>
+  <text x="1082" y="446" text-anchor="middle" font-size="9" fill="#666">安装后自检</text>
+  <text x="1082" y="458" text-anchor="middle" font-size="9" fill="#666">确认 GPU Ready</text>
+
+  <!-- 箭头 -->
+  <line x1="902" y1="477" x2="902" y2="497" stroke="#666" stroke-width="1.2" marker-end="url(#arrow)"/>
+
+  <!-- AMI 层 (精简) -->
+  <rect x="625" y="502" width="555" height="100" rx="8" fill="#e8f5e9" stroke="#2e7d32" stroke-width="2"/>
+  <text x="640" y="525" font-size="13" fill="#2e7d32" font-weight="bold">AMI 层 (标准 Amazon Linux 2023)</text>
+  <text x="1040" y="525" font-size="10" fill="#666" font-style="italic">无 GPU 组件预装</text>
+
+  <rect x="640" y="537" width="170" height="45" rx="5" fill="#fff" stroke="#e65100" stroke-width="1.2"/>
+  <text x="725" y="556" text-anchor="middle" font-size="10" fill="#e65100" font-weight="bold">EFA Driver (efa.ko)</text>
+  <text x="725" y="572" text-anchor="middle" font-size="9" fill="#e65100">user-data 安装（Operator 不管）</text>
+
+  <rect x="820" y="537" width="170" height="45" rx="5" fill="#fff" stroke="#2e7d32" stroke-width="1.2"/>
+  <text x="905" y="556" text-anchor="middle" font-size="10" fill="#2e7d32" font-weight="bold">NVMe LVM → /data</text>
+  <text x="905" y="572" text-anchor="middle" font-size="9" fill="#666">user-data 配置</text>
+
+  <rect x="1000" y="537" width="165" height="45" rx="5" fill="#fff" stroke="#2e7d32" stroke-width="1.2"/>
+  <text x="1082" y="556" text-anchor="middle" font-size="10" fill="#2e7d32" font-weight="bold">nodeadm</text>
+  <text x="1082" y="572" text-anchor="middle" font-size="9" fill="#666">EKS node bootstrap</text>
+
+  <!-- 优势标注 -->
+  <rect x="625" y="616" width="555" height="55" rx="6" fill="#fce4ec" stroke="#c62828" stroke-width="1"/>
+  <text x="902" y="636" text-anchor="middle" font-size="11" fill="#7b1fa2" font-weight="bold">✓ 优势</text>
+  <text x="902" y="654" text-anchor="middle" font-size="10" fill="#333">驱动原地升级（不换节点）· 多集群 GitOps 统管 · MIG 分区 · 单一 Helm release</text>
+
+  <!-- ===== 底部对比要点 ===== -->
+  <rect x="20" y="625" width="555" height="55" rx="6" fill="#ffebee" stroke="#c62828" stroke-width="1"/>
+  <text x="297" y="645" text-anchor="middle" font-size="11" fill="#c62828" font-weight="bold">⚠ 代价</text>
+  <text x="297" y="663" text-anchor="middle" font-size="10" fill="#333">驱动升级 = 节点替换（需 drain + 重调度）</text>
+
+  <rect x="625" y="680" width="555" height="18" rx="3" fill="none"/>
+  <text x="902" y="693" text-anchor="middle" font-size="10" fill="#c62828" font-weight="bold">⚠ 代价：启动慢 5-8 min · driver container 需 privileged · 依赖 NVIDIA 仓库可达</text>
+
+</svg>
+</body>
+</html>

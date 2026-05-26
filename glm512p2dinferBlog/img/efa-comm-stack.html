@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>EFA 通信软件栈</title>
+<style>
+  body { margin: 0; padding: 40px; background: #fff; font-family: -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif; }
+  svg { display: block; margin: 0 auto; }
+</style>
+</head>
+<body>
+<svg width="950" height="780" viewBox="0 0 950 780" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <marker id="arrow" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+      <path d="M0,0 L8,3 L0,6 Z" fill="#666"/>
+    </marker>
+    <marker id="arrow-blue" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+      <path d="M0,0 L8,3 L0,6 Z" fill="#1565c0"/>
+    </marker>
+    <marker id="arrow-orange" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+      <path d="M0,0 L8,3 L0,6 Z" fill="#e65100"/>
+    </marker>
+    <marker id="arrow-green" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+      <path d="M0,0 L8,3 L0,6 Z" fill="#2e7d32"/>
+    </marker>
+  </defs>
+
+  <!-- ===== 应用层 ===== -->
+
+  <!-- HPC 应用标题 -->
+  <rect x="40" y="20" width="120" height="30" rx="6" fill="#1565c0"/>
+  <text x="100" y="40" text-anchor="middle" font-size="12" fill="#fff" font-weight="bold">HPC 应用</text>
+
+  <!-- AI 应用标题 -->
+  <rect x="200" y="20" width="700" height="30" rx="6" fill="#e65100"/>
+  <text x="550" y="40" text-anchor="middle" font-size="12" fill="#fff" font-weight="bold">AI 应用</text>
+
+  <!-- Open MPI -->
+  <rect x="45" y="65" width="110" height="45" rx="5" fill="#e3f2fd" stroke="#1565c0" stroke-width="1.5"/>
+  <text x="100" y="85" text-anchor="middle" font-size="12" fill="#1565c0" font-weight="bold">Open MPI</text>
+  <text x="100" y="100" text-anchor="middle" font-size="9" fill="#666">MPI 通信框架</text>
+
+  <!-- NCCL -->
+  <rect x="225" y="65" width="130" height="45" rx="5" fill="#e3f2fd" stroke="#1565c0" stroke-width="1.5"/>
+  <text x="290" y="85" text-anchor="middle" font-size="12" fill="#1565c0" font-weight="bold">NCCL</text>
+  <text x="290" y="100" text-anchor="middle" font-size="9" fill="#666">分布式训练与推理</text>
+
+  <!-- UCCL-EP -->
+  <rect x="385" y="65" width="140" height="45" rx="5" fill="#e3f2fd" stroke="#1565c0" stroke-width="1.5"/>
+  <text x="455" y="85" text-anchor="middle" font-size="12" fill="#1565c0" font-weight="bold">UCCL-EP</text>
+  <text x="455" y="100" text-anchor="middle" font-size="9" fill="#666">DeepEP API / MoE</text>
+
+  <!-- NIXL -->
+  <rect x="555" y="65" width="130" height="45" rx="5" fill="#e3f2fd" stroke="#1565c0" stroke-width="1.5"/>
+  <text x="620" y="85" text-anchor="middle" font-size="12" fill="#1565c0" font-weight="bold">NIXL</text>
+  <text x="620" y="100" text-anchor="middle" font-size="9" fill="#666">推理 / KV Cache</text>
+
+  <!-- MoonCake -->
+  <rect x="715" y="65" width="150" height="45" rx="5" fill="#e3f2fd" stroke="#1565c0" stroke-width="1.5"/>
+  <text x="790" y="85" text-anchor="middle" font-size="12" fill="#1565c0" font-weight="bold">MoonCake</text>
+  <text x="790" y="100" text-anchor="middle" font-size="9" fill="#666">推理 / KV Cache</text>
+
+  <!-- ===== 桥接/适配层 ===== -->
+
+  <!-- AWS-OFI-NCCL -->
+  <rect x="225" y="148" width="130" height="42" rx="5" fill="#fff9c4" stroke="#f9a825" stroke-width="1.5"/>
+  <text x="290" y="168" text-anchor="middle" font-size="11" fill="#333" font-weight="bold">AWS-OFI-NCCL</text>
+  <text x="290" y="182" text-anchor="middle" font-size="9" fill="#666">net-plugin (桥接插件)</text>
+
+  <!-- UCCL libfabric plugin -->
+  <rect x="390" y="148" width="130" height="42" rx="5" fill="#fff9c4" stroke="#f9a825" stroke-width="1.5"/>
+  <text x="455" y="165" text-anchor="middle" font-size="10" fill="#333" font-weight="bold">UCCL libfabric</text>
+  <text x="455" y="178" text-anchor="middle" font-size="10" fill="#333" font-weight="bold">plugin</text>
+  <text x="455" y="192" text-anchor="middle" font-size="9" fill="#666">内置传输插件</text>
+
+  <!-- NIXL libfabric backend -->
+  <rect x="555" y="148" width="130" height="42" rx="5" fill="#fff9c4" stroke="#f9a825" stroke-width="1.5"/>
+  <text x="620" y="165" text-anchor="middle" font-size="10" fill="#333" font-weight="bold">libfabric</text>
+  <text x="620" y="178" text-anchor="middle" font-size="10" fill="#333" font-weight="bold">backend</text>
+  <text x="620" y="192" text-anchor="middle" font-size="9" fill="#666">backend plugin</text>
+
+  <!-- MoonCake EfaTransport -->
+  <rect x="720" y="148" width="140" height="42" rx="5" fill="#fff9c4" stroke="#f9a825" stroke-width="1.5"/>
+  <text x="790" y="165" text-anchor="middle" font-size="10" fill="#333" font-weight="bold">EfaTransport</text>
+  <text x="790" y="182" text-anchor="middle" font-size="9" fill="#666">源码新增 Transport 类</text>
+
+  <!-- 箭头: 应用 → 桥接 -->
+  <line x1="290" y1="110" x2="290" y2="146" stroke="#666" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <line x1="455" y1="110" x2="455" y2="146" stroke="#666" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <line x1="620" y1="110" x2="620" y2="146" stroke="#666" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <line x1="790" y1="110" x2="790" y2="146" stroke="#666" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+  <!-- 箭头: Open MPI 直连 Libfabric -->
+  <line x1="100" y1="110" x2="100" y2="278" stroke="#666" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+  <!-- 箭头: 桥接 → Libfabric -->
+  <line x1="290" y1="190" x2="290" y2="278" stroke="#666" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <line x1="455" y1="190" x2="455" y2="278" stroke="#666" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <line x1="620" y1="190" x2="620" y2="278" stroke="#666" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <line x1="790" y1="190" x2="790" y2="278" stroke="#666" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+  <!-- ===== Libfabric 层 (绿色虚线大框，内含两层) ===== -->
+  <rect x="40" y="280" width="860" height="90" rx="8" fill="none" stroke="#2e7d32" stroke-width="2" stroke-dasharray="6,3"/>
+
+  <!-- Libfabric API -->
+  <rect x="55" y="288" width="830" height="33" rx="6" fill="#2e7d32"/>
+  <text x="470" y="310" text-anchor="middle" font-size="13" fill="#fff" font-weight="bold">Libfabric API (OFI)</text>
+
+  <!-- EFA Provider -->
+  <rect x="55" y="328" width="830" height="33" rx="6" fill="#388e3c"/>
+  <text x="470" y="350" text-anchor="middle" font-size="12" fill="#fff" font-weight="bold">EFA Provider（EFA / 完整协议栈 | EFA-Direct / 硬件直通）</text>
+
+  <!-- ===== 三条数据路径 ===== -->
+
+  <!-- 路径标签 -->
+  <text x="200" y="395" text-anchor="middle" font-size="10" fill="#1565c0" font-weight="bold">控制平面</text>
+  <text x="470" y="395" text-anchor="middle" font-size="10" fill="#e65100" font-weight="bold">EFA 数据平面</text>
+  <text x="740" y="395" text-anchor="middle" font-size="10" fill="#2e7d32" font-weight="bold">EFA-Direct 数据平面</text>
+
+  <!-- 控制平面箭头 → RDMA-Core -->
+  <line x1="200" y1="361" x2="200" y2="418" stroke="#1565c0" stroke-width="2" marker-end="url(#arrow-blue)"/>
+
+  <!-- EFA 数据平面箭头 → RDMA-Core -->
+  <line x1="470" y1="361" x2="470" y2="418" stroke="#e65100" stroke-width="2" marker-end="url(#arrow-orange)"/>
+
+  <!-- EFA-Direct 箭头 → 绕过 RDMA-Core 直达硬件 -->
+  <line x1="740" y1="361" x2="740" y2="560" stroke="#2e7d32" stroke-width="2" stroke-dasharray="6,3" marker-end="url(#arrow-green)"/>
+
+  <!-- ===== RDMA-Core ===== -->
+  <rect x="80" y="420" width="520" height="42" rx="6" fill="#1976d2" opacity="0.85"/>
+  <text x="340" y="446" text-anchor="middle" font-size="13" fill="#fff" font-weight="bold">RDMA-Core</text>
+
+  <!-- 用户空间/内核空间分割线 -->
+  <line x1="40" y1="530" x2="900" y2="530" stroke="#999" stroke-width="1" stroke-dasharray="8,4"/>
+  <text x="40" y="522" font-size="10" fill="#666">用户空间</text>
+  <text x="40" y="545" font-size="10" fill="#666">内核空间</text>
+
+  <!-- 控制平面箭头: RDMA-Core → EFA Driver -->
+  <line x1="200" y1="462" x2="200" y2="568" stroke="#1565c0" stroke-width="2" marker-end="url(#arrow-blue)"/>
+
+  <!-- EFA 数据平面箭头: RDMA-Core → 绕过 Kernel 到硬件 -->
+  <line x1="470" y1="462" x2="470" y2="560" stroke="#e65100" stroke-width="2" stroke-dasharray="6,3" marker-end="url(#arrow-orange)"/>
+
+  <!-- 旁路标注 -->
+  <text x="470" y="510" text-anchor="middle" font-size="9" fill="#e65100">绕过 Kernel</text>
+  <text x="470" y="523" text-anchor="middle" font-size="9" fill="#e65100">用户态直通</text>
+
+  <text x="740" y="498" text-anchor="middle" font-size="9" fill="#2e7d32">绕过 RDMA-Core</text>
+  <text x="740" y="511" text-anchor="middle" font-size="9" fill="#2e7d32">绕过 Kernel</text>
+  <text x="740" y="524" text-anchor="middle" font-size="9" fill="#2e7d32">硬件直通</text>
+
+  <!-- ===== EFA Driver ===== -->
+  <rect x="80" y="570" width="260" height="40" rx="6" fill="#546e7a"/>
+  <text x="210" y="595" text-anchor="middle" font-size="13" fill="#fff" font-weight="bold">EFA Driver</text>
+
+  <!-- 控制平面箭头: EFA Driver → 硬件 -->
+  <line x1="200" y1="610" x2="200" y2="648" stroke="#1565c0" stroke-width="2" marker-end="url(#arrow-blue)"/>
+
+  <!-- EFA 数据平面箭头 → 硬件 -->
+  <line x1="470" y1="575" x2="470" y2="648" stroke="#e65100" stroke-width="2" stroke-dasharray="6,3" marker-end="url(#arrow-orange)"/>
+
+  <!-- EFA-Direct 箭头 → 硬件 -->
+  <line x1="740" y1="575" x2="740" y2="648" stroke="#2e7d32" stroke-width="2" stroke-dasharray="6,3" marker-end="url(#arrow-green)"/>
+
+  <!-- ===== EFA Hardware ===== -->
+  <rect x="80" y="650" width="780" height="50" rx="8" fill="#263238"/>
+  <text x="470" y="680" text-anchor="middle" font-size="14" fill="#fff" font-weight="bold">EFA Hardware (Nitro Card)</text>
+
+  <!-- ===== SRD 协议 ===== -->
+  <rect x="80" y="720" width="780" height="45" rx="8" fill="#c62828"/>
+  <text x="470" y="745" text-anchor="middle" font-size="14" fill="#fff" font-weight="bold">SRD 协议</text>
+  <text x="470" y="760" text-anchor="middle" font-size="10" fill="#ffcdd2">Scalable Reliable Datagram</text>
+
+  <line x1="470" y1="700" x2="470" y2="718" stroke="#666" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+  <!-- MoonCake 底部注释 -->
+  <text x="470" y="785" text-anchor="middle" font-size="10" fill="#e65100" font-style="italic">MoonCake 为开源替代方案，目前不具备官方 EFA 支持</text>
+
+</svg>
+</body>
+</html>
